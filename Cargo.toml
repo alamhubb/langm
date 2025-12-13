@@ -1,0 +1,33 @@
+[package]
+name = "langm"
+version = "0.1.0"
+edition = "2021"
+description = "基于能力的多语言运行时管理器"
+authors = ["LangM Team"]
+license = "MIT"
+homepage = "https://github.com/user/langm"
+repository = "https://github.com/user/langm"
+
+[package.metadata.wix]
+upgrade-guid = "A1B2C3D4-E5F6-7890-ABCD-EF1234567890"
+path-guid = "B2C3D4E5-F678-9012-BCDE-F12345678901"
+license = false
+eula = false
+
+[[bin]]
+name = "langm"
+path = "rust-src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+dialoguer = "0.11"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+dirs = "5"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

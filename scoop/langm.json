@@ -1,0 +1,27 @@
+{
+    "$schema": "https://raw.githubusercontent.com/ScoopInstaller/Scoop/master/schema.json",
+    "version": "0.1.0",
+    "description": "基于能力的多语言运行时管理器",
+    "homepage": "https://github.com/user/langm",
+    "license": "MIT",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/user/langm/releases/download/v0.1.0/langm-0.1.0-windows-x64.zip",
+            "hash": "TODO_REPLACE_WITH_SHA256_HASH"
+        }
+    },
+    "bin": "langm.exe",
+    "env_add_path": "$dir",
+    "post_install": [
+        "Write-Host 'LangM installed successfully!' -ForegroundColor Green",
+        "Write-Host 'Remember to add %USERPROFILE%\\.langm\\current\\bin to your PATH' -ForegroundColor Yellow"
+    ],
+    "checkver": "github",
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/user/langm/releases/download/v$version/langm-$version-windows-x64.zip"
+            }
+        }
+    }
+}
