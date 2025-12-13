@@ -53,7 +53,7 @@ if (Test-Path $docsPkgPath) {
 Write-Host "Version updated" -ForegroundColor Green
 
 Write-Host "Committing..." -ForegroundColor Yellow
-git add -A
+git add Cargo.toml package.json docs/package.json
 git commit -m "chore: bump version to $newVersion"
 
 Write-Host "Creating tag: $tag" -ForegroundColor Yellow
