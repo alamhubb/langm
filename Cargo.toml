@@ -1,6 +1,6 @@
 [package]
 name = "langm"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "基于能力的多语言运行时管理器"
 authors = ["LangM Team"]
@@ -19,9 +19,9 @@ name = "langm"
 path = "rust-src/main.rs"
 
 [dependencies]
-clap = { version = "4", features = ["derive"] }
+clap = { version = "0.1.1", features = ["derive"] }
 dialoguer = "0.11"
-serde = { version = "1", features = ["derive"] }
+serde = { version = "0.1.1", features = ["derive"] }
 serde_json = "1"
 dirs = "5"
 
