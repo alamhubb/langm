@@ -1,0 +1,12 @@
+D:\project\openproject\langm\target\release\deps\libanstyle-c6a7d19e17cae79f.rmeta: C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src/lib.rs C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src\macros.rs C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src\color.rs C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src\effect.rs C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src\reset.rs C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src\style.rs
+
+D:\project\openproject\langm\target\release\deps\libanstyle-c6a7d19e17cae79f.rlib: C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src/lib.rs C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src\macros.rs C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src\color.rs C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src\effect.rs C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src\reset.rs C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src\style.rs
+
+D:\project\openproject\langm\target\release\deps\anstyle-c6a7d19e17cae79f.d: C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src/lib.rs C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src\macros.rs C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src\color.rs C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src\effect.rs C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src\reset.rs C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src\style.rs
+
+C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src/lib.rs:
+C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src\macros.rs:
+C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src\color.rs:
+C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src\effect.rs:
+C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src\reset.rs:
+C:\Users\qinky\.cargo\registry\src\index.crates.io-6f17d22bba15001f\anstyle-1.0.13\src\style.rs:

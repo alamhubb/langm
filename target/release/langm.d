@@ -1,0 +1,1 @@
+D:\project\openproject\langm\target\release\langm.exe: D:\project\openproject\langm\rust-src\config.rs D:\project\openproject\langm\rust-src\detector.rs D:\project\openproject\langm\rust-src\main.rs D:\project\openproject\langm\rust-src\symlink.rs
