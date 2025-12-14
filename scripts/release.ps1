@@ -116,33 +116,48 @@ Write-Info "Creating Git tag..."
 git tag -a $tag -m "Release $tag"
 Write-Success "Tag $tag created"
 
+# Check for github remote
+$githubRemote = git remote -v | Select-String "github.com" | Select-Object -First 1
+if ($githubRemote -match "^(\S+)") {
+    $githubRemoteName = $matches[1]
+} else {
+    $githubRemoteName = $null
+}
+
 # Push confirmation
 Write-Host ""
 Write-Host "Will execute:" -ForegroundColor Yellow
-Write-Host "  1. Push code to remote" -ForegroundColor Gray
+Write-Host "  1. Push code to GitHub (triggers Actions)" -ForegroundColor Gray
 Write-Host "  2. Push tag $tag" -ForegroundColor Gray
 Write-Host "  3. GitHub Actions auto build (~5-10 min)" -ForegroundColor Gray
 Write-Host "  4. Auto publish to GitHub Releases" -ForegroundColor Gray
+if ($githubRemoteName -ne "origin") {
+    Write-Host "  5. Sync to Gitee (origin)" -ForegroundColor Gray
+}
 Write-Host ""
+Write-Host "Press Enter to continue, Ctrl+C to cancel" -ForegroundColor Gray
+Read-Host | Out-Null
 
-$confirm = Read-Host "Confirm push? (y/N)"
-if ($confirm -ne "y" -and $confirm -ne "Y") {
-    Write-Warn "Release cancelled, rolling back..."
-    git tag -d $tag
-    if ($newVersion -ne $currentVersion) {
-        git reset --hard HEAD~1
-    }
-    exit 0
+# Push to GitHub first (triggers Actions)
+if ($githubRemoteName) {
+    Write-Info "Pushing to GitHub ($githubRemoteName)..."
+    git push $githubRemoteName $branch
+    git push $githubRemoteName $tag
+    $repoUrl = "https://github.com/alamhubb/langm"
+} else {
+    Write-Warn "No GitHub remote found, pushing to origin..."
+    git push origin $branch
+    git push origin $tag
+    $remoteUrl = git remote get-url origin
+    $repoUrl = $remoteUrl -replace "\.git$"
 }
 
-# Push
-Write-Info "Pushing to remote..."
-git push origin $branch
-git push origin $tag
-
-# Get repo URL
-$remoteUrl = git remote get-url origin
-$repoUrl = $remoteUrl -replace "\.git$" -replace "git@github.com:", "https://github.com/"
+# Also sync to Gitee if origin is different
+if ($githubRemoteName -and $githubRemoteName -ne "origin") {
+    Write-Info "Syncing to Gitee (origin)..."
+    git push origin $branch 2>&1 | Out-Null
+    git push origin $tag 2>&1 | Out-Null
+}
 
 Write-Host ""
 Write-Success "Release started!"
