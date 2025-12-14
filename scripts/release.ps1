@@ -103,7 +103,8 @@ if ($newVersion -ne $currentVersion) {
     $packageJson | ConvertTo-Json -Depth 10 | Set-Content "package.json"
     
     Write-Info "Syncing Cargo.lock..."
-    cargo check 2>$null
+    $env:CARGO_TERM_COLOR = "never"
+    cargo check 2>&1 | Out-Null
     
     git add Cargo.toml Cargo.lock package.json
     git commit -m "chore: bump version to $newVersion"
