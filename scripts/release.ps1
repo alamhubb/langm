@@ -49,11 +49,27 @@ if ($cargoToml -match 'version\s*=\s*"([^"]+)"') {
 if ($Version) {
     $newVersion = $Version -replace "^v", ""
 } else {
+    # Auto increment patch version
+    $versionParts = $currentVersion -split "\."
+    $major = [int]$versionParts[0]
+    $minor = [int]$versionParts[1]
+    $patch = [int]$versionParts[2] + 1
+    $autoVersion = "$major.$minor.$patch"
+    
     Write-Host ""
-    Write-Host "Version format: major.minor.patch (e.g. 0.1.0, 1.0.0)" -ForegroundColor Gray
-    $newVersion = Read-Host "Enter new version (current: $currentVersion, press Enter to use current)"
-    if ([string]::IsNullOrWhiteSpace($newVersion)) {
+    Write-Host "Options:" -ForegroundColor Gray
+    Write-Host "  [Enter] Auto increment to $autoVersion" -ForegroundColor Gray
+    Write-Host "  [s]     Stay at current version $currentVersion" -ForegroundColor Gray
+    Write-Host "  [x.y.z] Custom version number" -ForegroundColor Gray
+    Write-Host ""
+    $input = Read-Host "Version"
+    
+    if ([string]::IsNullOrWhiteSpace($input)) {
+        $newVersion = $autoVersion
+    } elseif ($input -eq "s" -or $input -eq "S") {
         $newVersion = $currentVersion
+    } else {
+        $newVersion = $input
     }
 }
 
