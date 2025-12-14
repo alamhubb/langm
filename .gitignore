@@ -2,3 +2,4 @@
 /dist/
 /docs/.vitepress/
 package-lock.json
+/target/
