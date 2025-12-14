@@ -20,33 +20,17 @@ jobs:
       - name: Build
         run: cargo build --release
 
-      # 打包 zip (包含 langm.exe)
-      - name: Package ZIP
+      - name: Package
         run: |
           cd target/release
-          7z a ../../langm-windows-x64.zip langm.exe
-        shell: pwsh
+          tar -czvf ../../langm-windows-x64.tar.gz langm.exe
+        shell: bash
 
-      # 构建 MSI 安装包
-      - name: Install cargo-wix
-        run: cargo install cargo-wix
-
-      - name: Build MSI
-        run: cargo wix --no-build --nocapture
-
-      - name: Rename MSI
-        run: |
-          $msi = Get-ChildItem target/wix/*.msi | Select-Object -First 1
-          Copy-Item $msi.FullName "langm-windows-x64.msi"
-        shell: pwsh
-
-      - name: Upload artifacts
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: windows-artifacts
-          path: |
-            langm-windows-x64.zip
-            langm-windows-x64.msi
+          name: langm-windows-x64
+          path: langm-windows-x64.tar.gz
 
   build-linux:
     runs-on: ubuntu-latest
@@ -67,45 +51,56 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: linux-artifacts
+          name: langm-linux-x64
           path: langm-linux-x64.tar.gz
 
-  build-macos:
-    strategy:
-      matrix:
-        include:
-          - target: x86_64-apple-darwin
-            artifact: langm-macos-x64.tar.gz
-          - target: aarch64-apple-darwin
-            artifact: langm-macos-arm64.tar.gz
-
-    runs-on: macos-latest
+  build-macos-x64:
+    runs-on: macos-13  # Intel Mac
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
 
       - name: Build
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cargo build --release
 
       - name: Package
         run: |
-          cd target/${{ matrix.target }}/release
-          tar -czvf ../../../${{ matrix.artifact }} langm
+          cd target/release
+          tar -czvf ../../langm-macos-x64.tar.gz langm
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact }}
-          path: ${{ matrix.artifact }}
+          name: langm-macos-x64
+          path: langm-macos-x64.tar.gz
+
+  build-macos-arm64:
+    runs-on: macos-14  # Apple Silicon
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Package
+        run: |
+          cd target/release
+          tar -czvf ../../langm-macos-arm64.tar.gz langm
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: langm-macos-arm64
+          path: langm-macos-arm64.tar.gz
 
   release:
-    needs: [build-windows, build-linux, build-macos]
+    needs: [build-windows, build-linux, build-macos-x64, build-macos-arm64]
     runs-on: ubuntu-latest
-
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4

@@ -1,0 +1,9 @@
+# 暂不使用 Cirrus CI
+# 当前使用 GitHub Actions 进行构建和发布（公开仓库完全免费）
+# 
+# 如果将来需要 Cirrus CI（例如私有仓库需要免费 macOS 构建），
+# 可以取消下面的注释
+
+# windows_task:
+#   only_if: $CIRRUS_TAG =~ 'v.*'
+#   ...

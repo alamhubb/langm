@@ -1,72 +1,138 @@
-# Release script - auto bump version, commit, tag and push
+# LangM Release Script
+# Usage: npm run release
 
 param(
-    [Parameter(Mandatory=$false)]
-    [ValidateSet("patch", "minor", "major")]
-    [string]$BumpType = "patch"
+    [string]$Version
 )
 
-$cargoContent = Get-Content "Cargo.toml" -Raw
-if ($cargoContent -match 'version\s*=\s*"([^"]+)"') {
-    $currentVersion = $matches[1]
-} else {
-    Write-Host "Error: Cannot read version from Cargo.toml" -ForegroundColor Red
+$ErrorActionPreference = "Stop"
+
+function Write-Info { Write-Host "[INFO] $args" -ForegroundColor Cyan }
+function Write-Success { Write-Host "[OK] $args" -ForegroundColor Green }
+function Write-Warn { Write-Host "[WARN] $args" -ForegroundColor Yellow }
+function Write-Err { Write-Host "[ERROR] $args" -ForegroundColor Red }
+
+Write-Host ""
+Write-Host "=== LangM Release Tool ===" -ForegroundColor Magenta
+Write-Host ""
+
+# Check git status
+Write-Info "Checking Git status..."
+$status = git status --porcelain
+if ($status) {
+    Write-Err "Working directory is not clean. Please commit or stash changes first."
+    Write-Host $status
     exit 1
 }
 
-$versionParts = $currentVersion.Split('.')
-$major = [int]$versionParts[0]
-$minor = [int]$versionParts[1]
-$patch = [int]$versionParts[2]
-
-switch ($BumpType) {
-    "major" { $major++; $minor = 0; $patch = 0 }
-    "minor" { $minor++; $patch = 0 }
-    "patch" { $patch++ }
+# Ensure on main branch
+$branch = git branch --show-current
+if ($branch -ne "main" -and $branch -ne "master") {
+    Write-Warn "Current branch: $branch (recommend releasing from main/master)"
+    $confirm = Read-Host "Continue? (y/N)"
+    if ($confirm -ne "y" -and $confirm -ne "Y") {
+        exit 0
+    }
 }
 
-$newVersion = "$major.$minor.$patch"
+# Get current version
+$cargoToml = Get-Content "Cargo.toml" -Raw
+if ($cargoToml -match 'version\s*=\s*"([^"]+)"') {
+    $currentVersion = $matches[1]
+    Write-Info "Current version: v$currentVersion"
+} else {
+    Write-Err "Cannot read version from Cargo.toml"
+    exit 1
+}
+
+# Determine new version
+if ($Version) {
+    $newVersion = $Version -replace "^v", ""
+} else {
+    Write-Host ""
+    Write-Host "Version format: major.minor.patch (e.g. 0.1.0, 1.0.0)" -ForegroundColor Gray
+    $newVersion = Read-Host "Enter new version (current: $currentVersion, press Enter to use current)"
+    if ([string]::IsNullOrWhiteSpace($newVersion)) {
+        $newVersion = $currentVersion
+    }
+}
+
 $tag = "v$newVersion"
+Write-Info "Will release version: $tag"
 
-Write-Host "Version: $currentVersion -> $newVersion" -ForegroundColor Cyan
-
-$newVersionStr = 'version = "' + $newVersion + '"'
-$cargoContent = $cargoContent -replace 'version\s*=\s*"[^"]+"', $newVersionStr
-Set-Content "Cargo.toml" $cargoContent -NoNewline
-
-$pkgPath = "package.json"
-if (Test-Path $pkgPath) {
-    $pkgContent = Get-Content $pkgPath -Raw
-    $newPkgVersionStr = '"version": "' + $newVersion + '"'
-    $pkgContent = $pkgContent -replace '"version"\s*:\s*"[^"]+"', $newPkgVersionStr
-    Set-Content $pkgPath $pkgContent -NoNewline
+# Check if tag exists
+$existingTag = git tag -l $tag
+if ($existingTag) {
+    Write-Warn "Tag $tag already exists"
+    $confirm = Read-Host "Delete and recreate? (y/N)"
+    if ($confirm -eq "y" -or $confirm -eq "Y") {
+        git tag -d $tag 2>$null
+        git push origin --delete $tag 2>$null
+        Write-Info "Deleted old tag"
+    } else {
+        Write-Err "Release cancelled"
+        exit 1
+    }
 }
 
-$docsPkgPath = "docs/package.json"
-if (Test-Path $docsPkgPath) {
-    $docsPkgContent = Get-Content $docsPkgPath -Raw
-    $newDocsPkgVersionStr = '"version": "' + $newVersion + '"'
-    $docsPkgContent = $docsPkgContent -replace '"version"\s*:\s*"[^"]+"', $newDocsPkgVersionStr
-    Set-Content $docsPkgPath $docsPkgContent -NoNewline
+# Update version if needed
+if ($newVersion -ne $currentVersion) {
+    Write-Info "Updating Cargo.toml version..."
+    $cargoToml = $cargoToml -replace '(version\s*=\s*")[^"]+(")', "`${1}$newVersion`${2}"
+    Set-Content "Cargo.toml" $cargoToml -NoNewline
+    
+    Write-Info "Updating package.json version..."
+    $packageJson = Get-Content "package.json" -Raw | ConvertFrom-Json
+    $packageJson.version = $newVersion
+    $packageJson | ConvertTo-Json -Depth 10 | Set-Content "package.json"
+    
+    Write-Info "Syncing Cargo.lock..."
+    cargo check 2>$null
+    
+    git add Cargo.toml Cargo.lock package.json
+    git commit -m "chore: bump version to $newVersion"
+    Write-Success "Version updated"
 }
 
-Write-Host "Version updated" -ForegroundColor Green
+# Create tag
+Write-Info "Creating Git tag..."
+git tag -a $tag -m "Release $tag"
+Write-Success "Tag $tag created"
 
-Write-Host "Committing..." -ForegroundColor Yellow
-git add Cargo.toml package.json docs/package.json
-git commit -m "chore: bump version to $newVersion"
+# Push confirmation
+Write-Host ""
+Write-Host "Will execute:" -ForegroundColor Yellow
+Write-Host "  1. Push code to remote" -ForegroundColor Gray
+Write-Host "  2. Push tag $tag" -ForegroundColor Gray
+Write-Host "  3. GitHub Actions auto build (~5-10 min)" -ForegroundColor Gray
+Write-Host "  4. Auto publish to GitHub Releases" -ForegroundColor Gray
+Write-Host ""
 
-Write-Host "Creating tag: $tag" -ForegroundColor Yellow
-git tag $tag
+$confirm = Read-Host "Confirm push? (y/N)"
+if ($confirm -ne "y" -and $confirm -ne "Y") {
+    Write-Warn "Release cancelled, rolling back..."
+    git tag -d $tag
+    if ($newVersion -ne $currentVersion) {
+        git reset --hard HEAD~1
+    }
+    exit 0
+}
 
-Write-Host "Pushing..." -ForegroundColor Yellow
-git push
+# Push
+Write-Info "Pushing to remote..."
+git push origin $branch
 git push origin $tag
 
+# Get repo URL
+$remoteUrl = git remote get-url origin
+$repoUrl = $remoteUrl -replace "\.git$" -replace "git@github.com:", "https://github.com/"
+
 Write-Host ""
-Write-Host "Release success! Version $tag" -ForegroundColor Green
-Write-Host "  GitHub Actions building:" -ForegroundColor Green
-Write-Host "  https://github.com/alamhubb/langm/actions" -ForegroundColor Cyan
+Write-Success "Release started!"
 Write-Host ""
-Write-Host "  Download after build:" -ForegroundColor Green
-Write-Host "  https://github.com/alamhubb/langm/releases/tag/$tag" -ForegroundColor Cyan
+Write-Host "Track progress:" -ForegroundColor Yellow
+Write-Host "  Actions: $repoUrl/actions" -ForegroundColor Cyan
+Write-Host "  Release: $repoUrl/releases/tag/$tag" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "Build usually takes 5-10 minutes" -ForegroundColor Gray
+Write-Host ""
