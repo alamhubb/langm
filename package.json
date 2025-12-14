@@ -1,6 +1,6 @@
 {
     "name":  "langm",
-    "version":  "0.1.4",
+    "version":  "0.1.5",
     "description":  "基于能力的多语言运行时管理器",
     "type":  "module",
     "main":  "src/index.ts",
