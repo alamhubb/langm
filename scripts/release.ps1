@@ -127,29 +127,23 @@ if ($githubRemote -match "^(\S+)") {
 # Push confirmation
 Write-Host ""
 Write-Host "Will execute:" -ForegroundColor Yellow
-Write-Host "  1. Push code to GitHub (triggers Actions)" -ForegroundColor Gray
+Write-Host "  1. Push code to GitHub (triggers Cirrus CI)" -ForegroundColor Gray
 Write-Host "  2. Push tag $tag" -ForegroundColor Gray
-Write-Host "  3. GitHub Actions auto build (~5-10 min)" -ForegroundColor Gray
-Write-Host "  4. Auto publish to GitHub Releases" -ForegroundColor Gray
-if ($githubRemoteName -ne "origin") {
-    Write-Host "  5. Sync to Gitee (origin)" -ForegroundColor Gray
-}
+Write-Host "  3. Cirrus CI auto build (~10-15 min)" -ForegroundColor Gray
+Write-Host "  4. Download artifacts and create GitHub Release manually" -ForegroundColor Gray
 Write-Host ""
 Write-Host "Press Enter to continue, Ctrl+C to cancel" -ForegroundColor Gray
 Read-Host | Out-Null
 
-# Push to GitHub first (triggers Actions)
+# Push to GitHub (triggers Cirrus CI)
 if ($githubRemoteName) {
     Write-Info "Pushing to GitHub ($githubRemoteName)..."
     git push $githubRemoteName $branch
     git push $githubRemoteName $tag
-    $repoUrl = "https://github.com/alamhubb/langm"
 } else {
     Write-Warn "No GitHub remote found, pushing to origin..."
     git push origin $branch
     git push origin $tag
-    $remoteUrl = git remote get-url origin
-    $repoUrl = $remoteUrl -replace "\.git$"
 }
 
 # Also sync to Gitee if origin is different
@@ -160,11 +154,14 @@ if ($githubRemoteName -and $githubRemoteName -ne "origin") {
 }
 
 Write-Host ""
-Write-Success "Release started!"
+Write-Success "Release triggered!"
 Write-Host ""
-Write-Host "Track progress:" -ForegroundColor Yellow
-Write-Host "  Actions: $repoUrl/actions" -ForegroundColor Cyan
-Write-Host "  Release: $repoUrl/releases/tag/$tag" -ForegroundColor Cyan
+Write-Host "Next steps:" -ForegroundColor Yellow
+Write-Host "  1. Wait for Cirrus CI build (~10-15 min)" -ForegroundColor Gray
+Write-Host "  2. Download artifacts from Cirrus CI" -ForegroundColor Gray
+Write-Host "  3. Create GitHub Release and upload files" -ForegroundColor Gray
 Write-Host ""
-Write-Host "Build usually takes 5-10 minutes" -ForegroundColor Gray
+Write-Host "Links:" -ForegroundColor Yellow
+Write-Host "  Cirrus CI:  https://cirrus-ci.com/github/alamhubb/langm" -ForegroundColor Cyan
+Write-Host "  Create Release: https://github.com/alamhubb/langm/releases/new?tag=$tag" -ForegroundColor Cyan
 Write-Host ""

@@ -1,9 +1,77 @@
-# 暂不使用 Cirrus CI
-# 当前使用 GitHub Actions 进行构建和发布（公开仓库完全免费）
-# 
-# 如果将来需要 Cirrus CI（例如私有仓库需要免费 macOS 构建），
-# 可以取消下面的注释
+# Cirrus CI Build Configuration
+# Triggers on tag push (v*)
+# After build, download artifacts from https://cirrus-ci.com/github/alamhubb/langm
 
-# windows_task:
-#   only_if: $CIRRUS_TAG =~ 'v.*'
-#   ...
+# Windows x64
+windows_task:
+  name: build-windows-x64
+  only_if: $CIRRUS_TAG =~ 'v.*'
+  windows_container:
+    image: cirrusci/windowsservercore:2019
+  env:
+    CARGO_HOME: C:\Users\ContainerUser\.cargo
+    RUSTUP_HOME: C:\Users\ContainerUser\.rustup
+  install_script:
+    - curl -sSf -o rustup-init.exe https://win.rustup.rs/x86_64
+    - rustup-init.exe -y --default-toolchain stable
+  build_script:
+    - set PATH=%CARGO_HOME%\bin;%PATH%
+    - cargo build --release
+  package_script:
+    - mkdir artifacts
+    - copy target\release\langm.exe artifacts\
+    - cd artifacts && tar -czvf ..\langm-windows-x64.tar.gz langm.exe
+  artifacts:
+    path: langm-windows-x64.tar.gz
+    type: application/gzip
+
+# Linux x64
+linux_x64_task:
+  name: build-linux-x64
+  only_if: $CIRRUS_TAG =~ 'v.*'
+  container:
+    image: rust:latest
+  build_script:
+    - cargo build --release
+  package_script:
+    - cd target/release && tar -czvf ../../langm-linux-x64.tar.gz langm
+  artifacts:
+    path: langm-linux-x64.tar.gz
+    type: application/gzip
+
+# macOS x64 (Intel)
+macos_x64_task:
+  name: build-macos-x64
+  only_if: $CIRRUS_TAG =~ 'v.*'
+  macos_instance:
+    image: ghcr.io/cirruslabs/macos-ventura-base:latest
+  env:
+    PATH: ${HOME}/.cargo/bin:${PATH}
+  install_script:
+    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  build_script:
+    - cargo build --release
+  package_script:
+    - cd target/release && tar -czvf ../../langm-macos-x64.tar.gz langm
+  artifacts:
+    path: langm-macos-x64.tar.gz
+    type: application/gzip
+
+# macOS ARM64 (Apple Silicon)
+macos_arm64_task:
+  name: build-macos-arm64
+  only_if: $CIRRUS_TAG =~ 'v.*'
+  macos_instance:
+    image: ghcr.io/cirruslabs/macos-ventura-base:latest
+  env:
+    PATH: ${HOME}/.cargo/bin:${PATH}
+  install_script:
+    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    - rustup target add aarch64-apple-darwin
+  build_script:
+    - cargo build --release --target aarch64-apple-darwin
+  package_script:
+    - cd target/aarch64-apple-darwin/release && tar -czvf ../../../langm-macos-arm64.tar.gz langm
+  artifacts:
+    path: langm-macos-arm64.tar.gz
+    type: application/gzip
